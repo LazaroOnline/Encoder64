@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<!-- CDN: (for prototyping) -->
+		<!-- <script src="https://cdn.jsdelivr.net/npm/babel-polyfill/dist/polyfill.min.js"></script> -->
+		<script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/vuetify@1.5.18/dist/vuetify.min.js"></script>
+		<link  href="https://cdn.jsdelivr.net/npm/vuetify@1.5.18/dist/vuetify.min.css" rel="stylesheet" />
+
+		<!-- LATEST MINOR REVISIONS:
+		<script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/vuetify@1.5.x/dist/vuetify.js"></script>
+		<link href="https://cdn.jsdelivr.net/npm/vuetify@1.5.x/dist/vuetify.min.css" rel="stylesheet" />
+		-->
+		<!-- Vuetify V1.X Icons: -->
+		<link href="https://fonts.googleapis.com/css?family=Material+Icons" rel="stylesheet" />
+		<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons" rel="stylesheet" />
+
+		<!-- SELF HOSTED: Ensure library availability even if there is no internet access:
+		<script src="./libs/vue.min.js"></script>
+		<script src="./libs/vuetify.min.js"></script>
+		<link  href="./libs/vuetify.min.css"				rel="stylesheet"/>
+		<link  href="./libs/materialdesignicons.min.css"	rel="stylesheet"/>
+		-->
+
+	</head>
+	<body>
+		<div id="vue-root"></div>
+	</body>
+</html>
+<style>
+.txt-console input {
+	font-family: monospace !important;
+	color: gray !important;
+}
+.txt-error textarea,
+.txt-error input {
+	background-color: salmon;
+}
+</style>
+
+<script>
+// ------------------------------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------------------------------------------------------
+"use strict";
+/*\
+|*|  Base64 / binary data / UTF-8 strings utilities (#1)
+|*|  https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#Solution_1_%E2%80%93_JavaScript's_UTF-16_%3E_base64
+|*|  Author: madmurphy
+\*/
+
+/* Array of bytes to base64 string decoding */
+function b64ToUint6 (nChr) {
+  return nChr > 64 && nChr < 91 ?
+      nChr - 65
+    : nChr > 96 && nChr < 123 ?
+      nChr - 71
+    : nChr > 47 && nChr < 58 ?
+      nChr + 4
+    : nChr === 43 ?
+      62
+    : nChr === 47 ?
+      63
+    :
+      0;
+}
+
+function base64DecToArr (sBase64, nBlockSize) {
+  var
+    sB64Enc = sBase64.replace(/[^A-Za-z0-9\+\/]/g, ""), nInLen = sB64Enc.length,
+    nOutLen = nBlockSize ? Math.ceil((nInLen * 3 + 1 >>> 2) / nBlockSize) * nBlockSize : nInLen * 3 + 1 >>> 2, aBytes = new Uint8Array(nOutLen);
+
+  for (var nMod3, nMod4, nUint24 = 0, nOutIdx = 0, nInIdx = 0; nInIdx < nInLen; nInIdx++) {
+    nMod4 = nInIdx & 3;
+    nUint24 |= b64ToUint6(sB64Enc.charCodeAt(nInIdx)) << 18 - 6 * nMod4;
+    if (nMod4 === 3 || nInLen - nInIdx === 1) {
+      for (nMod3 = 0; nMod3 < 3 && nOutIdx < nOutLen; nMod3++, nOutIdx++) {
+        aBytes[nOutIdx] = nUint24 >>> (16 >>> nMod3 & 24) & 255;
+      }
+      nUint24 = 0;
+    }
+  }
+  return aBytes;
+}
+
+/* Base64 string to array encoding */
+function uint6ToB64 (nUint6) {
+
+  return nUint6 < 26 ?
+      nUint6 + 65
+    : nUint6 < 52 ?
+      nUint6 + 71
+    : nUint6 < 62 ?
+      nUint6 - 4
+    : nUint6 === 62 ?
+      43
+    : nUint6 === 63 ?
+      47
+    :
+      65;
+}
+
+function base64EncArr (aBytes) {
+
+  var eqLen = (3 - (aBytes.length % 3)) % 3, sB64Enc = "";
+
+  for (var nMod3, nLen = aBytes.length, nUint24 = 0, nIdx = 0; nIdx < nLen; nIdx++) {
+    nMod3 = nIdx % 3;
+    /* Uncomment the following line in order to split the output in lines 76-character long: */
+    /*
+    if (nIdx > 0 && (nIdx * 4 / 3) % 76 === 0) { sB64Enc += "\r\n"; }
+    */
+    nUint24 |= aBytes[nIdx] << (16 >>> nMod3 & 24);
+    if (nMod3 === 2 || aBytes.length - nIdx === 1) {
+      sB64Enc += String.fromCharCode(uint6ToB64(nUint24 >>> 18 & 63), uint6ToB64(nUint24 >>> 12 & 63), uint6ToB64(nUint24 >>> 6 & 63), uint6ToB64(nUint24 & 63));
+      nUint24 = 0;
+    }
+  }
+
+  return  eqLen === 0 ?
+      sB64Enc
+    :
+      sB64Enc.substring(0, sB64Enc.length - eqLen) + (eqLen === 1 ? "=" : "==");
+}
+</script>
+<script>
+
+function encodeBase64Utf16 (plainText) {
+	if (!plainText)
+		return ''
+	var aUTF16CodeUnits = new Uint16Array(plainText.length)
+	Array.prototype.forEach.call(aUTF16CodeUnits, function (el, idx, arr) { arr[idx] = plainText.charCodeAt(idx); })
+	var sUTF16Base64 = base64EncArr(new Uint8Array(aUTF16CodeUnits.buffer))
+	return sUTF16Base64
+}
+
+function decodeBase64Utf16 (encodedText) {
+	if (!encodedText)
+		return ''
+	//return atob(encodedText) // This would display strange characters betwen normal characters.
+	var sDecodedString = String.fromCharCode.apply(null, new Uint16Array(base64DecToArr(encodedText, 2).buffer))
+	return sDecodedString
+}
+
+function encodeBase64Utf8(plainText) {
+	if (!plainText)
+		return ''
+	return window.btoa(unescape(encodeURIComponent(plainText)))
+}
+/** Some special characters won't be rendered in IE11 */
+function decodeBase64Utf8(encodedText) {
+	if (!encodedText)
+			return ''
+	return decodeURIComponent(escape(window.atob(encodedText)))
+}
+</script>
+<script>
+
+var App = {
+    template: `
+        <v-app>
+            <v-container fluid class="py-0 px-2">
+			
+                <v-layout wrap>
+					<v-flex xs12>
+						<h3>BASE 64 ENCODER FOR POWERSHELL</h3>
+						<h5>✓ Full Unicode support, serverless, UTF-16 PowerShell compatible.</h5>
+					</v-flex>
+                </v-layout>
+					
+				<h2>Encoder</h2>
+                <v-layout wrap>
+					<v-flex xs12>
+						<v-textarea :clearable="true" v-model="plainText" label="Plain text" />
+					</v-flex>
+					<v-flex xs12>
+						<v-text-field :clearable="true" v-model="encodedTextUtf16" label="Encoded text utf-16" />
+					</v-flex>
+					<v-flex xs12>
+						<v-text-field :clearable="true" v-model="encodedTextUtf8" label="Encoded Text Utf-8" />
+					</v-flex>
+					
+					<v-flex xs12>
+						<v-text-field v-model="psCommandEncode" label="PS Encode" class="txt-console" />
+					</v-flex>
+					
+					<v-flex xs12>
+						<v-text-field v-model="psCommandDecode" label="PS Decode" class="txt-console" />
+					</v-flex>
+					
+					<v-flex xs12>
+						<v-text-field v-model="psCommandRun" 	label="CMD Run" class="txt-console" />
+					</v-flex>
+                </v-layout>
+
+				<h2>Decoder</h2>
+                <v-layout wrap>
+					<v-flex x12>
+						<v-text-field clearable v-model="encodedText" label="Encoded text" />
+					</v-flex>
+
+					<v-flex x12>
+						<v-textarea readonly v-model="decodedTextUtf16" label="Decoded text as Utf-16" :class="{'txt-error': isErrorDecodingUtf16}"/>
+					</v-flex>
+
+					<v-flex x12>
+						<v-textarea readonly v-model="decodedTextUtf8" label="Decoded text as Utf-8" :class="{'txt-error': isErrorDecodingUtf8}"/>
+					</v-flex>
+
+                </v-layout>
+            </v-container>
+        </v-app>`,
+    name: 'App',
+	data() {
+		return {
+			 plainText: 'Test'
+			,encodedText: ''
+			,isErrorDecodingUtf8: false
+			,isErrorDecodingUtf16: false
+		}
+	},
+	computed: {
+		encodedTextUtf16() {
+			return encodeBase64Utf16(this.plainText)
+		},
+		encodedTextUtf8() {
+			return encodeBase64Utf8(this.plainText)
+		},
+		psCommandEncode() {
+			return '[Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes("' + (this.plainText||'') + '"))'
+		 },
+		psCommandDecode() {
+			return '[System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String("' + this.encodedTextUtf16 + '"))'
+		},
+		psCommandRun() {
+			return 'powershell -EncodedCommand "' + this.encodedTextUtf16 + '" -noExit'
+		},
+		decodedTextUtf16() {
+			try {
+				var result = decodeBase64Utf16(this.encodedText)
+				this.isErrorDecodingUtf16 = false
+				return result
+			} catch(ex) {
+				this.isErrorDecodingUtf16 = true
+				return ''
+			}
+		 },
+		decodedTextUtf8() {
+			try {
+				var result = decodeBase64Utf8(this.encodedText)
+				this.isErrorDecodingUtf8 = false
+				return result
+			} catch(ex) {
+				this.isErrorDecodingUtf8 = true
+				return ''
+			}
+		 },
+	},
+}
+var vueApp = new Vue({
+    render: h => h(App),
+}).$mount('#vue-root')
+
+</script>
