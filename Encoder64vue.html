@@ -4,17 +4,18 @@
 		<!-- CDN: (for prototyping) -->
 		<!-- <script src="https://cdn.jsdelivr.net/npm/babel-polyfill/dist/polyfill.min.js"></script> -->
 		<script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.min.js"></script>
-		<script src="https://cdn.jsdelivr.net/npm/vuetify@1.5.18/dist/vuetify.min.js"></script>
-		<link  href="https://cdn.jsdelivr.net/npm/vuetify@1.5.18/dist/vuetify.min.css" rel="stylesheet" />
+		<script src="https://cdn.jsdelivr.net/npm/vuetify@2.0.15/dist/vuetify.min.js"></script>
+		<link  href="https://cdn.jsdelivr.net/npm/vuetify@2.0.15/dist/vuetify.min.css" rel="stylesheet" />
 
 		<!-- LATEST MINOR REVISIONS:
 		<script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.min.js"></script>
-		<script src="https://cdn.jsdelivr.net/npm/vuetify@1.5.x/dist/vuetify.js"></script>
-		<link href="https://cdn.jsdelivr.net/npm/vuetify@1.5.x/dist/vuetify.min.css" rel="stylesheet" />
+		<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x.x/dist/vuetify.min.js"></script>
+		<link  href="https://cdn.jsdelivr.net/npm/vuetify@2.x.x/dist/vuetify.min.css" rel="stylesheet" />
 		-->
-		<!-- Vuetify V1.X Icons: -->
-		<link href="https://fonts.googleapis.com/css?family=Material+Icons" rel="stylesheet" />
-		<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons" rel="stylesheet" />
+
+		<!-- Vuetify V2 Icons: -->
+		<link href="https://cdn.jsdelivr.net/npm/@mdi/font@3.x/css/materialdesignicons.min.css" rel="stylesheet" />
+		<link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet" />
 
 		<!-- SELF HOSTED: Ensure library availability even if there is no internet access:
 		<script src="./libs/vue.min.js"></script>
@@ -22,7 +23,6 @@
 		<link  href="./libs/vuetify.min.css"				rel="stylesheet"/>
 		<link  href="./libs/materialdesignicons.min.css"	rel="stylesheet"/>
 		-->
-
 	</head>
 	<body>
 		<div id="vue-root"></div>
@@ -161,53 +161,53 @@ var App = {
         <v-app>
             <v-container fluid class="py-0 px-2">
 			
-                <v-layout wrap>
-					<v-flex xs12>
+                <v-row>
+					<v-col cols="12">
 						<h3>BASE 64 ENCODER FOR POWERSHELL</h3>
 						<h5>✓ Full Unicode support, serverless, UTF-16 PowerShell compatible.</h5>
-					</v-flex>
-                </v-layout>
-					
+					</v-col>
+                </v-row>
+				
 				<h2>Encoder</h2>
-                <v-layout wrap>
-					<v-flex xs12>
-						<v-textarea :clearable="true" v-model="plainText" label="Plain text" />
-					</v-flex>
-					<v-flex xs12>
-						<v-text-field :clearable="true" v-model="encodedTextUtf16" label="Encoded text utf-16" />
-					</v-flex>
-					<v-flex xs12>
-						<v-text-field :clearable="true" v-model="encodedTextUtf8" label="Encoded Text Utf-8" />
-					</v-flex>
+                <v-row no-gutters dense>
+					<v-col cols="12">
+						<v-textarea clearable v-model="plainText" label="Plain text" />
+					</v-col>
+					<v-col cols="12">
+						<v-text-field readonly v-model="encodedTextUtf16" label="Encoded text utf-16" />
+					</v-col>
+					<v-col cols="12">
+						<v-text-field readonly v-model="encodedTextUtf8" label="Encoded Text Utf-8" />
+					</v-col>
 					
-					<v-flex xs12>
-						<v-text-field v-model="psCommandEncode" label="PS Encode" class="txt-console" />
-					</v-flex>
+					<v-col cols="12">
+						<v-text-field readonly v-model="psCommandEncode" label="PS Encode" class="txt-console" />
+					</v-col>
 					
-					<v-flex xs12>
-						<v-text-field v-model="psCommandDecode" label="PS Decode" class="txt-console" />
-					</v-flex>
+					<v-col cols="12">
+						<v-text-field readonly v-model="psCommandDecode" label="PS Decode" class="pa-0 ma-1 txt-console" />
+					</v-col>
 					
-					<v-flex xs12>
-						<v-text-field v-model="psCommandRun" 	label="CMD Run" class="txt-console" />
-					</v-flex>
-                </v-layout>
+					<v-col cols="12">
+						<v-text-field readonly v-model="psCommandRun" 	label="CMD Run" class="pa-0 ma-1 txt-console" />
+					</v-col>
+                </v-row>
 
 				<h2>Decoder</h2>
-                <v-layout wrap>
-					<v-flex x12>
+                <v-row no-gutters>
+					<v-col cols="12">
 						<v-text-field clearable v-model="encodedText" label="Encoded text" />
-					</v-flex>
+					</v-col>
 
-					<v-flex x12>
+					<v-col cols="12">
 						<v-textarea readonly v-model="decodedTextUtf16" label="Decoded text as Utf-16" :class="{'txt-error': isErrorDecodingUtf16}"/>
-					</v-flex>
+					</v-col>
 
-					<v-flex x12>
+					<v-col cols="12">
 						<v-textarea readonly v-model="decodedTextUtf8" label="Decoded text as Utf-8" :class="{'txt-error': isErrorDecodingUtf8}"/>
-					</v-flex>
-
-                </v-layout>
+					</v-col>
+					
+                </v-row>
             </v-container>
         </v-app>`,
     name: 'App',
@@ -220,13 +220,13 @@ var App = {
 		}
 	},
 	computed: {
-		encodedTextUtf16() {
+		 encodedTextUtf16() {
 			return encodeBase64Utf16(this.plainText)
-		},
-		encodedTextUtf8() {
+		 },
+		 encodedTextUtf8() {
 			return encodeBase64Utf8(this.plainText)
-		},
-		psCommandEncode() {
+		 },
+		 psCommandEncode() {
 			return '[Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes("' + (this.plainText||'') + '"))'
 		 },
 		psCommandDecode() {
@@ -235,6 +235,9 @@ var App = {
 		psCommandRun() {
 			return 'powershell -EncodedCommand "' + this.encodedTextUtf16 + '" -noExit'
 		},
+		decodedTextUtf16() {
+			return decodeBase64Utf16(this.encodedText)
+		 },
 		decodedTextUtf16() {
 			try {
 				var result = decodeBase64Utf16(this.encodedText)
@@ -257,7 +260,9 @@ var App = {
 		 },
 	},
 }
+var vuetify = new Vuetify()
 var vueApp = new Vue({
+	vuetify,
     render: h => h(App),
 }).$mount('#vue-root')
 
