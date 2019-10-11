@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	</head>
+	<body>
+		<h3>BASE 64 ENCODER FOR POWERSHELL</h3>
+		<h5>✓ Full Unicode support, serverless, UTF-16 PowerShell compatible.</h5>
+		<table style="width:100%">
+			<th width="160px"></th>
+			<tr>
+				<td>Plain text:</td>
+				<td>
+					<textarea id="txtPlainText"></textarea>
+					<button type="button" id="btnEncode">Encode</button>
+				</td>
+			</tr>
+			<tr>
+				<td>Encoded Text Utf-16:</td>
+				<td><input type="text" id="txtEncodedTextUtf16" readonly/></td>
+			</tr>
+			<tr>
+				<td>Encoded Text Utf-8:</td>
+				<td><input type="text" id="txtEncodedTextUtf8" readonly/></td>
+			</tr>
+			<tr class="txt-console">
+				<td>PS Encode:</td>
+				<td><input type="text" id="txtPSCommandEncode" readonly/></td>
+			</tr>
+			<tr class="txt-console">
+				<td>PS Decode:</td>
+				<td><input type="text" id="txtPSCommandDecode" readonly/></td>
+			<tr class="txt-console">
+				<td>CMD Run:</td>
+				<td><input type="text" id="txtPSCommandRun" readonly/></td>
+			</tr>
+			<tr height="30"></tr>
+			<tr>
+				<td>Encoded text:</td>
+				<td>
+					<input type="text" id="txtEncodedText" />
+					<button type="button" id="btnDecode">Decode</button>
+				</td>
+			</tr>
+			<tr>
+				<td>Decoded Text as Utf-16:</td>
+				<td><textarea type="text" id="txtDecodedTextUtf16" readonly></textarea></td>
+			</tr>
+			<tr>
+				<td>Decoded Text as Utf-8:</td>
+				<td><textarea type="text" id="txtDecodedTextUtf8" readonly></textarea></td>
+			</tr>
+		</table>
+	</body>
+</html>
+<style>
+
+#txtPlainText,
+#txtEncodedText,
+#txtEncodedTextUtf16,
+#txtEncodedTextUtf8,
+#txtDecodedTextUtf16,
+#txtDecodedTextUtf8,
+#txtPSCommandEncode,
+#txtPSCommandDecode,
+#txtPSCommandRun
+{
+	width: 100%;
+}
+
+#btnEncode,
+#btnDecode {
+	width: 300px;
+}
+
+.txt-console textarea,
+.txt-console input  {
+	font-family: monospace !important;
+	color: gray !important;
+	max-width: 100%;
+}
+
+.txt-error {
+	background-color: salmon;
+}
+
+</style>
+<script>
+// ------------------------------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------------------------------------------------------
+"use strict";
+/*\
+|*|  Base64 / binary data / UTF-8 strings utilities (#1)
+|*|  https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#Solution_1_%E2%80%93_JavaScript's_UTF-16_%3E_base64
+|*|  Author: madmurphy
+\*/
+
+/* Array of bytes to base64 string decoding */
+function b64ToUint6 (nChr) {
+  return nChr > 64 && nChr < 91 ?
+      nChr - 65
+    : nChr > 96 && nChr < 123 ?
+      nChr - 71
+    : nChr > 47 && nChr < 58 ?
+      nChr + 4
+    : nChr === 43 ?
+      62
+    : nChr === 47 ?
+      63
+    :
+      0;
+}
+
+function base64DecToArr (sBase64, nBlockSize) {
+  var
+    sB64Enc = sBase64.replace(/[^A-Za-z0-9\+\/]/g, ""), nInLen = sB64Enc.length,
+    nOutLen = nBlockSize ? Math.ceil((nInLen * 3 + 1 >>> 2) / nBlockSize) * nBlockSize : nInLen * 3 + 1 >>> 2, aBytes = new Uint8Array(nOutLen);
+
+  for (var nMod3, nMod4, nUint24 = 0, nOutIdx = 0, nInIdx = 0; nInIdx < nInLen; nInIdx++) {
+    nMod4 = nInIdx & 3;
+    nUint24 |= b64ToUint6(sB64Enc.charCodeAt(nInIdx)) << 18 - 6 * nMod4;
+    if (nMod4 === 3 || nInLen - nInIdx === 1) {
+      for (nMod3 = 0; nMod3 < 3 && nOutIdx < nOutLen; nMod3++, nOutIdx++) {
+        aBytes[nOutIdx] = nUint24 >>> (16 >>> nMod3 & 24) & 255;
+      }
+      nUint24 = 0;
+    }
+  }
+  return aBytes;
+}
+
+/* Base64 string to array encoding */
+function uint6ToB64 (nUint6) {
+
+  return nUint6 < 26 ?
+      nUint6 + 65
+    : nUint6 < 52 ?
+      nUint6 + 71
+    : nUint6 < 62 ?
+      nUint6 - 4
+    : nUint6 === 62 ?
+      43
+    : nUint6 === 63 ?
+      47
+    :
+      65;
+}
+
+function base64EncArr (aBytes) {
+
+  var eqLen = (3 - (aBytes.length % 3)) % 3, sB64Enc = "";
+
+  for (var nMod3, nLen = aBytes.length, nUint24 = 0, nIdx = 0; nIdx < nLen; nIdx++) {
+    nMod3 = nIdx % 3;
+    /* Uncomment the following line in order to split the output in lines 76-character long: */
+    /*
+    if (nIdx > 0 && (nIdx * 4 / 3) % 76 === 0) { sB64Enc += "\r\n"; }
+    */
+    nUint24 |= aBytes[nIdx] << (16 >>> nMod3 & 24);
+    if (nMod3 === 2 || aBytes.length - nIdx === 1) {
+      sB64Enc += String.fromCharCode(uint6ToB64(nUint24 >>> 18 & 63), uint6ToB64(nUint24 >>> 12 & 63), uint6ToB64(nUint24 >>> 6 & 63), uint6ToB64(nUint24 & 63));
+      nUint24 = 0;
+    }
+  }
+
+  return  eqLen === 0 ?
+      sB64Enc
+    :
+      sB64Enc.substring(0, sB64Enc.length - eqLen) + (eqLen === 1 ? "=" : "==");
+}
+</script>
+<script>
+
+function encodeBase64Utf16 (plainText) {
+	if (!plainText)
+		return ''
+	var aUTF16CodeUnits = new Uint16Array(plainText.length)
+	Array.prototype.forEach.call(aUTF16CodeUnits, function (el, idx, arr) { arr[idx] = plainText.charCodeAt(idx); })
+	var sUTF16Base64 = base64EncArr(new Uint8Array(aUTF16CodeUnits.buffer))
+	return sUTF16Base64
+}
+
+function decodeBase64Utf16 (encodedText) {
+	if (!encodedText)
+		return ''
+	//return atob(encodedText) // This would display strange characters betwen normal characters.
+	var sDecodedString = String.fromCharCode.apply(null, new Uint16Array(base64DecToArr(encodedText, 2).buffer))
+	return sDecodedString
+}
+
+function encodeBase64Utf8(plainText) {
+	if (!plainText)
+		return ''
+	return window.btoa(unescape(encodeURIComponent(plainText)))
+}
+/** Some special characters won't be rendered in IE11 */
+function decodeBase64Utf8(encodedText) {
+	if (!encodedText)
+			return ''
+	return decodeURIComponent(escape(window.atob(encodedText)))
+}
+</script>
+
+<script>
+// VAINILLA JS:
+
+function updatePowerShellExamples(plainText, encodedText) {
+	document.querySelector('#txtPSCommandEncode').value = '[Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes("' + plainText + '"))'
+	document.querySelector('#txtPSCommandDecode').value = '[System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String("' + encodedText + '"))'
+	document.querySelector('#txtPSCommandRun').value = 'powershell -EncodedCommand "' + encodedText + '" -noExit'
+}
+
+document.querySelector('#btnEncode').onclick = function() {
+	var plainText = document.querySelector('#txtPlainText').value
+	var encodedTextUtf16 = encodeBase64Utf16(plainText)
+	var encodedTextUtf8 = encodeBase64Utf8(plainText)
+	document.querySelector('#txtEncodedTextUtf16').value = encodedTextUtf16
+	document.querySelector('#txtEncodedTextUtf8').value = encodedTextUtf8
+	updatePowerShellExamples(plainText, encodedTextUtf16)
+}
+
+document.querySelector('#btnDecode').onclick = function() {
+	var txtDecoded16 = document.querySelector('#txtDecodedTextUtf16')
+	var txtDecoded8 = document.querySelector('#txtDecodedTextUtf8')
+	txtDecoded16.classList.remove('txt-error')
+	txtDecoded8.classList.remove('txt-error')
+	var encodedText = document.querySelector('#txtEncodedText').value
+	var plainText16 = ''
+	var plainText8 = ''
+	try {
+		plainText16 = decodeBase64Utf16(encodedText)
+	} catch(ex) {
+		document.querySelector('#txtDecodedTextUtf16').classList.add('txt-error')
+		// alert('Can not convert to base64 as Utf-16:\r\n' + encodedText)
+	}
+	try {
+		plainText8 = decodeBase64Utf8(encodedText)
+	} catch(ex) {
+		txtDecoded8.classList.add('txt-error')
+		// alert('Can not convert to base64 as Utf-8:\r\n' + encodedText)
+	}
+	txtDecoded16.value = plainText16
+	txtDecoded8.value = plainText8
+}
+
+</script>
