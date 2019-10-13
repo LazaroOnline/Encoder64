@@ -3,15 +3,15 @@
 	<head>
 	</head>
 	<body>
-		<h3>BASE 64 ENCODER FOR POWERSHELL</h3>
-		<h5>✓ Full Unicode support, serverless, UTF-16 PowerShell compatible.</h5>
+		<h2 class="title">BASE 64 ENCODER FOR POWERSHELL</h2>
+		<h5 class="subtitle">✓ Full Unicode support, serverless, UTF-16 PowerShell compatible.</h5>
 		<table style="width:100%">
 			<th width="160px"></th>
 			<tr>
 				<td>Plain text:</td>
 				<td>
 					<textarea id="txtPlainText"></textarea>
-					<button type="button" id="btnEncode">Encode</button>
+					<button type="button" id="btnEncode" class="center-horizontal">Encode</button>
 				</td>
 			</tr>
 			<tr>
@@ -38,7 +38,7 @@
 				<td>Encoded text:</td>
 				<td>
 					<input type="text" id="txtEncodedText" />
-					<button type="button" id="btnDecode">Decode</button>
+					<button type="button" id="btnDecode" class="center-horizontal">Decode</button>
 				</td>
 			</tr>
 			<tr>
@@ -53,7 +53,30 @@
 	</body>
 </html>
 <style>
+/* Dark theme */
+body,
+input,
+button,
+textarea {
+	font-family: monospace;
+	background-color: #111;
+	color: chartreuse;
+}
+button,
+input,
+textarea {
+	background-color: #222;
+}
+input,
+textarea {
+	border: 0;
+}
 
+
+/* Layout */
+.title, .subtitle {
+	margin: 0;
+}
 #txtPlainText,
 #txtEncodedText,
 #txtEncodedTextUtf16,
@@ -80,7 +103,11 @@
 }
 
 .txt-error {
-	background-color: salmon;
+	background-color: rgba(255, 0, 0, 0.15);
+}
+.center-horizontal {
+	display: block;
+	margin: 0 auto;
 }
 
 </style>

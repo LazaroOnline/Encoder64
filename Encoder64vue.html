@@ -29,13 +29,17 @@
 	</body>
 </html>
 <style>
+.title,
+.subtitle {
+	color: chartreuse;
+}
 .txt-console input {
 	font-family: monospace !important;
 	color: gray !important;
 }
 .txt-error textarea,
 .txt-error input {
-	background-color: salmon;
+	background-color: rgba(255, 0, 0, 0.15);
 }
 </style>
 
@@ -163,12 +167,12 @@ var App = {
 			
                 <v-row>
 					<v-col cols="12">
-						<h3>BASE 64 ENCODER FOR POWERSHELL</h3>
-						<h5>✓ Full Unicode support, serverless, UTF-16 PowerShell compatible.</h5>
+						<h3 class="title">BASE 64 ENCODER FOR POWERSHELL</h3>
+						<h5 class="subtitle">✓ Full Unicode support, serverless, UTF-16 PowerShell compatible.</h5>
 					</v-col>
                 </v-row>
 				
-				<h2>Encoder</h2>
+				<h2 color="primary">Encoder</h2>
                 <v-row no-gutters dense>
 					<v-col cols="12">
 						<v-textarea clearable v-model="plainText" label="Plain text" />
@@ -260,7 +264,40 @@ var App = {
 		 },
 	},
 }
-var vuetify = new Vuetify()
+var vuetify = new Vuetify({
+	theme: {
+		dark: true,
+		themes: {
+			dark: {
+				primary: '#7fff00',
+				accent: '#7fff00',
+				error: 	'#7fff00',
+				info: 	'#7fff00',
+				success: '#7fff00',
+				warning: '#7fff00',
+				label:     '#7fff00',
+				text:     '#7fff00',
+				base:     '#7fff00',
+				accent:   '#7fff00',
+				primary:  '#7fff00',
+				secondary:'#7fff00',
+				tertiary: '#7fff00',
+				// 'primary--text': '#7fff00',
+				// 'secondary--text': '#7fff00',
+				anchor:   '#7fff00',
+				lighten5: '#7fff00',
+				lighten4: '#7fff00',
+				lighten3: '#7fff00',
+				lighten2: '#7fff00',
+				lighten1: '#7fff00',
+				darken1:  '#7fff00',
+				darken2:  '#7fff00',
+				darken3:  '#7fff00',
+				darken4:  '#7fff00',
+			},
+		}
+	}
+})
 var vueApp = new Vue({
 	vuetify,
     render: h => h(App),
